@@ -25,23 +25,26 @@ public class IntroActivity extends AppCompatActivity {
         public void run() {
             Intent intent;
             auto_login = getSharedPreferences("Clean", MODE_PRIVATE);
-            if(auto_login.getBoolean("Auto_login", false)){
+            if(auto_login.getBoolean("Auto_Login_enabled", false)){
                 intent = new Intent(IntroActivity.this, MainActivity.class);
             }else{
-                intent = new Intent(IntroActivity.this, MainActivity.class);
+                intent = new Intent(IntroActivity.this, LoginActivity.class);
             }
 
             startActivity(intent);
             finish();
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
 
         }
     };
+
     @Override
-    public void finish(){
-        super.finish();
-        this.overridePendingTransition(android.R.anim.fade_out, android.R.anim.fade_in);
-        /*화면 전환 애니메이션을 구현하기 위한 메소드 첫번째는 새로 띄워지는 액티비티에 적용할 애니메이션
-        두번째는 자신이 종료될 때 적용할 애니메이션
+    public void onBackPressed() {
+        super.onBackPressed();
+        handler.removeCallbacks(mrun);
+        /*
+        인트로 중에 뒤로가기를 누를 경우 핸드러를 끊어서 아무일 없게 만드는 부분
+        미 설정시 인트로 중 뒤로가기를 누르면 인트로 후에 홈 화면이 나오게 된다
          */
     }
 }
