@@ -19,7 +19,7 @@ import okhttp3.Response;
 
 public class SignUpActivity extends AppCompatActivity {
     EditText etId, etPW, etPW2;
-    String SEVER_ADDRESS = "http://192.168.43.148:8080";
+    String SEVER_ADDRESS = LoginActivity.SEVER_ADDRESS;
     private static final String CONNECT_ERROR = "데이터 연결을 확인해주세요.";
 
 
