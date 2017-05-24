@@ -128,7 +128,7 @@ public class CircularProgressBar extends ProgressBar {
 
 
         mProgressColorPaint.setAntiAlias(true);
-        mProgressColorPaint.setStyle(Paint.Style.FILL);
+        mProgressColorPaint.setStyle(Paint.Style.STROKE);
         mProgressColorPaint.setStrokeWidth(mStrokeWidth);
 
         mBackgroundColorPaint.setAntiAlias(true);

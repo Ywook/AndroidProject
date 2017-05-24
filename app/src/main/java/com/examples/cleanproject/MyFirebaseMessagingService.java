@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
@@ -19,11 +20,19 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
 
     String title, body, num;
 
+    public static SharedPreferences setting,pushset;
+    public static SharedPreferences.Editor SettingEditor,PushEditor;
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         title = remoteMessage.getData().get("title");
-        body = remoteMessage.getData().get("body");
+        body = remoteMessage.getData().get("message");
         num = remoteMessage.getData().get("num");
+
+        setting = getSharedPreferences("alarm",0);
+        SettingEditor = setting.edit();
+        SettingEditor.putString(num,"0");
+        SettingEditor.commit();
 
         sendNotification(title, body);
     }

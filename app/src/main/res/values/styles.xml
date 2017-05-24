@@ -13,6 +13,21 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="CustomActionBarTheme"
+        parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <!--<item name="android:navigationBarColor">@color/colorActionBar</item>-->
+        <!-- Support library compatibility -->
+        <item name="colorPrimaryDark">@color/colorActionBar</item>
+        <item name="actionBarStyle">@style/MyActionBar</item>
+
+    </style>
+
+    <!-- ActionBar styles -->
+    <style name="MyActionBar"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/colorActionBar</item>
+        <item name="background">@color/colorActionBar</item>
+    </style>
     <style name="Widget"/>
 
     <style name="Widget.ProgressBar.CircularProgressBar" parent="Widget">

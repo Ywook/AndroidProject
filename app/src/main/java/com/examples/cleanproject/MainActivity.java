@@ -1,21 +1,30 @@
 package com.examples.cleanproject;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -23,11 +32,27 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static android.graphics.Color.rgb;
+
 public class MainActivity extends AppCompatActivity {
+    public static SharedPreferences setting;
+    public static SharedPreferences.Editor editor;
+
+
     String SEVER_ADDRESS = LoginActivity.SEVER_ADDRESS;
     BackPressCloseHandler backPressCloseHandler;
+    CircularProgressBar[] cpBar;
 
     Button[] btns;
+
+    String[] d_time = new String[4];
+    String[] status = new String[4];
+    int[] second = new int[4];
+    String TAG_STATUS = "status";
+    String TAG_TIME = "time";
+
+    Handler handler = new Handler();
+    TimerTask start;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,12 +63,42 @@ public class MainActivity extends AppCompatActivity {
         init();
     }
 
+    @Override
+    protected void onResume() {
+        Start();
+        setImageButton();
+        super.onResume();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        start.cancel();
+        super.onUserLeaveHint();
+    }
+
     public void init(){
+        setting = getSharedPreferences("alarm",0);
+        editor = setting.edit();
+
         backPressCloseHandler = new BackPressCloseHandler(this);
+
+        cpBar = new CircularProgressBar[4];
+        cpBar[0] = (CircularProgressBar)findViewById(R.id.circularprogressbar1);
+        cpBar[1] = (CircularProgressBar)findViewById(R.id.circularprogressbar2);
+        cpBar[2] = (CircularProgressBar)findViewById(R.id.circularprogressbar3);
+        cpBar[3] = (CircularProgressBar)findViewById(R.id.circularprogressbar4);
 
         btns = new Button[2];
         btns[0] = (Button)findViewById(R.id.button1);
         btns[1] = (Button)findViewById(R.id.button2);
+
+        for(int i = 0; i < 4; i++) {
+            if(setting.getString((i + 1) + "", "0").equals("0"))
+                status[i] = "0";
+            else
+                status[i] = "1";
+        }
+        setImageButton();
 
         btns[0].setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,8 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 new AsyncAlarm().execute("2");
             }
         });
-
-
+        Start();
     }
     @Override
     public void onBackPressed() {
@@ -71,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... strings) {
             String token = FirebaseInstanceId.getInstance().getToken();
             OkHttpClient client = new OkHttpClient();
+            Log.d("token", token);
+            Log.d("tokennum", strings[0]);
             RequestBody body = new FormBody.Builder()
                     .add("token", token)
                     .add("num", strings[0])
@@ -127,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     setButtonImage(1,true);
                 }
+                editor.putString(str[0], "2");
+                editor.commit();
             }else if(str[1].equals("1")){
                 alg.setTitle("알림")
                         .setMessage(str[0] + "번 세탁기 알림이 취소되었습니다.")
@@ -137,7 +195,8 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     setButtonImage(1,false);
                 }
-
+                editor.putString(str[0], "1");
+                editor.commit();
             }else if(s.equals("error")){
                 Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.",Toast.LENGTH_LONG).show();
             }else{
@@ -146,18 +205,175 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    public void setImageButton(){
+        if(setting.getString("1","0").equals("2")) {
+            setButtonImage(0, true);
+        }else{
+            setButtonImage(0,false);
+        }
+        if(setting.getString("2","0").equals("2")) {
+            setButtonImage(1,true);
+        }else{
+            setButtonImage(1,false);
+        }
+    }
     public void setButtonImage(int btn, Boolean b){
         if(b){
             btns[btn].setBackgroundResource(R.drawable.button2);
-            btns[btn].setTextColor(Color.rgb(255,255,255));
+            btns[btn].setTextColor(rgb(255,255,255));
             btns[btn].setText("알림취소");
         }else{
             btns[btn].setBackgroundResource(R.drawable.button);
-            btns[btn].setTextColor(Color.rgb(0,0,0));
+            btns[btn].setTextColor(rgb(0,0,0));
             btns[btn].setText("알림받기");
         }
     }
 
+    public void Start(){
+        start = new TimerTask() {
+            @Override
+            public void run() {
+                timeTask();
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(start, 0, 1000);
+    }
+    private void timeTask(){
+        getData(SEVER_ADDRESS+"/fcm/timer/status.php");
+        for(int i=0; i<2; i++){
+
+            if (second[i] != 0) {
+                int min = second[i] / 60;
+                int sec = second[i] % 60;
+                d_time[i] = String.format("%02d : %02d", min, sec);
+            } else {
+                d_time[i] = "00 : 00";
+            }
+            Update(i);
+        }
+    }
+
+    private void Update(int i){
+        final int num = i;
+
+        Runnable updater = new Runnable() {
+            @Override
+            public void run() {
+                if(status[num].equals("0")){
+                    cpBar[num].setTitle("0%");
+                    cpBar[num].setTitleColor(rgb(228,229,231));
+                    cpBar[num].setSubTitle("사용가능");
+                    cpBar[num].setSubTitleColor(rgb(24,211,180));
+                    cpBar[num].setProgress(0);
+
+                    btns[num].setBackgroundResource(R.drawable.button);
+                    btns[num].setTextColor(rgb(228,229,231));
+                    btns[num].setText("알림받기");
+                    btns[num].setEnabled(false);
+                }else{
+                    int percent = 100-(int)(((second[num]/60.0)/40)*100);
+                    cpBar[num].setTitleColor(rgb(0,137,223));
+
+                    if(percent>100) cpBar[num].setTitle("100%");
+                    else cpBar[num].setTitle(percent+"%");
+
+                    cpBar[num].setSubTitleColor(rgb(93,93,93));
+                    cpBar[num].setProgress(100-(int)(((second[num]/60.0)/40)*100));
+
+                    if(d_time[num].contains("-")) cpBar[num].setSubTitle("00 : 00");
+                    else cpBar[num].setSubTitle(d_time[num]);
+
+                    if(setting.getString((num+1)+"", "0").equals("0")) {
+                        btns[num].setTextColor(Color.rgb(0,0,0));
+                        editor.putString((num+1)+"", "1");
+                        editor.commit();
+                    }
+
+                    btns[num].setEnabled(true);
+
+                }
+                if(status[2].equals("0")){
+                    cpBar[2].setTitle("사용가능");
+                    cpBar[2].setTitleColor(Color.rgb(24,211,180));
+                    cpBar[2].setProgress(0);
+                }else{
+                    cpBar[2].setTitle("사용 중");
+                    cpBar[2].setTitleColor(Color.rgb(0,137,223));
+                    cpBar[2].setProgress(100);
+                }
+                if(status[3].equals("0")){
+                    cpBar[3].setTitle("사용가능");
+                    cpBar[3].setTitleColor(Color.rgb(24,211,180));
+                    cpBar[3].setProgress(0);
+                }else{
+                    cpBar[3].setTitle("사용 중 ");
+                    cpBar[3].setTitleColor(Color.rgb(0,137,223));
+                    cpBar[3].setProgress(100);
+                }
+
+            }
+        };
+        handler.post(updater);
+
+    }
+
+    public void getData(String url){
+        class GetDataJSON extends AsyncTask<String, String, String>{
+            @Override
+            protected String doInBackground(String... strings) {
+                OkHttpClient client = new OkHttpClient();
+                //request
+                Request request = new Request.Builder()
+                        .url(strings[0])
+                        .build();
+                try {
+                    Response response = client.newCall(request).execute();
+                    String jsonData = response.body().string();
+                    response.body().close();
+                    return jsonData;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                if(s == null){
+                    Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요",Toast.LENGTH_LONG).show();
+                    return;
+                }
+                showStatus(s);
+            }
+        }
+        GetDataJSON g = new GetDataJSON();
+        g.execute(url);
+    }
+
+    public void showStatus(String jsonData){
+        try{
+            JSONObject jsonObject = new JSONObject(jsonData);
+            JSONArray jsonArray = jsonObject.getJSONArray("result");
+
+            for(int i  = 0; i < jsonArray.length(); i++){
+                JSONObject object = jsonArray.getJSONObject(i);
+                String temp = object.getString(TAG_STATUS);
+                String endtime = object.getString(TAG_TIME);
+                if(temp.equals("1")){
+                    status[i] = temp;
+                    second[i] = remainTime(endtime);
+                }else{
+                    status[i] = "0";
+                    second[i] = 0;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
     public int remainTime(String timeEnd){
         long now = System.currentTimeMillis();
         Date date = new Date(now);
@@ -165,6 +381,7 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat dataFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.KOREA);
         try{
             String timeNow = dataFormat.format(date);
+            Log.d("time", timeNow);
             Date startTime = dataFormat.parse(timeNow);
             Date endTime = dataFormat.parse(timeEnd);
 
