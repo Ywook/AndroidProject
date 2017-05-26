@@ -1,5 +1,7 @@
 package com.examples.cleanproject;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -8,6 +10,8 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -51,8 +55,13 @@ public class MainActivity extends AppCompatActivity {
     String TAG_STATUS = "status";
     String TAG_TIME = "time";
 
-    Handler handler = new Handler();
+    Handler mhandler = new Handler();
     TimerTask start;
+
+    Boolean FIRST = true;
+    Boolean terminate = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,20 +70,37 @@ public class MainActivity extends AppCompatActivity {
         setTitle("사용현황");
 
         init();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        start.cancel();
+        super.onDestroy();
     }
 
     @Override
     protected void onResume() {
         Start();
         setImageButton();
+        Log.d("rol","onResume호출");
         super.onResume();
     }
 
     @Override
-    protected void onUserLeaveHint() {
+    protected void onPause() {
         start.cancel();
+        Log.d("rol","onpause호출");
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
         super.onUserLeaveHint();
     }
+
+    ProgressDialog progressDialog;
 
     public void init(){
         setting = getSharedPreferences("alarm",0);
@@ -91,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
         btns = new Button[2];
         btns[0] = (Button)findViewById(R.id.button1);
         btns[1] = (Button)findViewById(R.id.button2);
+
+        progressDialog = new ProgressDialog(MainActivity.this);
 
         for(int i = 0; i < 4; i++) {
             if(setting.getString((i + 1) + "", "0").equals("0"))
@@ -125,8 +153,6 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... strings) {
             String token = FirebaseInstanceId.getInstance().getToken();
             OkHttpClient client = new OkHttpClient();
-            Log.d("token", token);
-            Log.d("tokennum", strings[0]);
             RequestBody body = new FormBody.Builder()
                     .add("token", token)
                     .add("num", strings[0])
@@ -236,6 +262,11 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 timeTask();
             }
+
+            @Override
+            public boolean cancel() {
+                return super.cancel();
+            }
         };
         Timer timer = new Timer();
         timer.schedule(start, 0, 1000);
@@ -312,43 +343,13 @@ public class MainActivity extends AppCompatActivity {
                     cpBar[3].setTitleColor(Color.rgb(0,137,223));
                     cpBar[3].setProgress(100);
                 }
-
             }
         };
-        handler.post(updater);
+        mhandler.post(updater);
 
     }
 
     public void getData(String url){
-        class GetDataJSON extends AsyncTask<String, String, String>{
-            @Override
-            protected String doInBackground(String... strings) {
-                OkHttpClient client = new OkHttpClient();
-                //request
-                Request request = new Request.Builder()
-                        .url(strings[0])
-                        .build();
-                try {
-                    Response response = client.newCall(request).execute();
-                    String jsonData = response.body().string();
-                    response.body().close();
-                    return jsonData;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-                if(s == null){
-                    Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요",Toast.LENGTH_LONG).show();
-                    return;
-                }
-                showStatus(s);
-            }
-        }
         GetDataJSON g = new GetDataJSON();
         g.execute(url);
     }
@@ -381,7 +382,6 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat dataFormat = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.KOREA);
         try{
             String timeNow = dataFormat.format(date);
-            Log.d("time", timeNow);
             Date startTime = dataFormat.parse(timeNow);
             Date endTime = dataFormat.parse(timeEnd);
 
@@ -393,6 +393,79 @@ public class MainActivity extends AppCompatActivity {
             return 0;
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Intent i = new Intent(MainActivity.this, SettingActivity.class);
+        startActivity(i);
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    class GetDataJSON extends AsyncTask<String, String, String>{
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if(FIRST){
+                mhandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.setMessage("Loading..");
+                        progressDialog.setCancelable(false);
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        progressDialog.show();
+                    }
+                });
+            }
+
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            OkHttpClient client = new OkHttpClient();
+            //request
+            Request request = new Request.Builder()
+                    .url(strings[0])
+                    .build();
+            try {
+                Response response = client.newCall(request).execute();
+                String jsonData = response.body().string();
+                response.body().close();
+                return jsonData;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            if(FIRST){
+                mhandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                        FIRST=false;
+                    }
+                });
+
+            }
+            if(s == null){
+                Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요",Toast.LENGTH_LONG).show();
+                terminate =true;
+                return;
+            }
+            showStatus(s);
+        }
     }
 
 }

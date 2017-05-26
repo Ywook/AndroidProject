@@ -20,8 +20,10 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
 
     String title, body, num;
 
-    public static SharedPreferences setting,pushset;
-    public static SharedPreferences.Editor SettingEditor,PushEditor;
+    public static SharedPreferences setting;
+    public static SharedPreferences.Editor SettingEditor;
+
+    Boolean[] b;
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -33,6 +35,8 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
         SettingEditor = setting.edit();
         SettingEditor.putString(num,"0");
         SettingEditor.commit();
+
+        b = new Boolean[]{setting.getBoolean("sound",true), setting.getBoolean("vibrate",true)};
 
         sendNotification(title, body);
     }
@@ -48,8 +52,11 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
                 .setContentTitle(title) //상단바 알림제목
                 .setContentText(body) //상단바 알림내용
                 .setAutoCancel(true)//터치하면 자동으로 지워지도록 하는 것
-                .setSound(defaultSoundUri)   //알림음 설정
                 .setContentIntent(pendingIntent);
+
+        if(b[0]) notificationB.setSound(defaultSoundUri);
+        if(b[1]) notificationB.setVibrate(new long[]{0,3000});
+
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(0,notificationB.build());
 
