@@ -27,8 +27,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -56,12 +54,9 @@ public class MainActivity extends AppCompatActivity {
     String TAG_TIME = "time";
 
     Handler mhandler = new Handler();
-    TimerTask start;
 
     Boolean FIRST = true;
-    Boolean terminate = false;
-
-
+    GetDataJSON g;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,32 +70,24 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        start.cancel();
+        g.cancel(true);
         super.onDestroy();
     }
 
     @Override
     protected void onResume() {
-        Start();
         setImageButton();
+        getData(SEVER_ADDRESS+"/fcm/timer/status.php");
         Log.d("rol","onResume호출");
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        start.cancel();
         Log.d("rol","onpause호출");
-
+        g.cancel(true);
         super.onPause();
     }
-
-    @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-    }
-
-    ProgressDialog progressDialog;
 
     public void init(){
         setting = getSharedPreferences("alarm",0);
@@ -118,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
         btns[0] = (Button)findViewById(R.id.button1);
         btns[1] = (Button)findViewById(R.id.button2);
 
-        progressDialog = new ProgressDialog(MainActivity.this);
 
         for(int i = 0; i < 4; i++) {
             if(setting.getString((i + 1) + "", "0").equals("0"))
@@ -128,34 +114,34 @@ public class MainActivity extends AppCompatActivity {
         }
         setImageButton();
 
-        btns[0].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AsyncAlarm().execute("1");
-            }
-        });
-
-        btns[1].setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AsyncAlarm().execute("2");
-            }
-        });
-        Start();
     }
-    @Override
-    public void onBackPressed() {
-        backPressCloseHandler.onBackPressed();
+    public void onClick(View v){
+        if(v.getId() == R.id.button1){
+            ButtonThread thread = new ButtonThread();
+            thread.setNum("1");
+            thread.start();
+        }else{
+            ButtonThread thread = new ButtonThread();
+            thread.setNum("2");
+            thread.start();
+
+        }
     }
 
-    private class AsyncAlarm extends AsyncTask<String, String, String>{
+    class ButtonThread extends Thread{
+        String num = "";
+
+        void setNum(String n){
+            num = n;
+        }
+
         @Override
-        protected String doInBackground(String... strings) {
+        public void run() {
             String token = FirebaseInstanceId.getInstance().getToken();
             OkHttpClient client = new OkHttpClient();
             RequestBody body = new FormBody.Builder()
                     .add("token", token)
-                    .add("num", strings[0])
+                    .add("num", num)
                     .build();
 
             Request request = new Request.Builder()
@@ -175,61 +161,76 @@ public class MainActivity extends AppCompatActivity {
                             .build();
                     client.newCall(request).execute();
 
-                    return strings[0]+",1";
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ButtonHandler(num+",1");
+                        }
+                    });
                 }else if(res.equals("0")){
                     request = new Request.Builder()
                             .url(SEVER_ADDRESS+"/fcm/laundry.php")
                             .post(body)
                             .build();
                     client.newCall(request).execute();
-
-                    return strings[0] + ",0";
-                }else{
-                    return res;
+                    mhandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            ButtonHandler(num+",0");
+                        }
+                    });
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                return "error";
+                mhandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ButtonHandler("error");
+                    }
+                });
             }
         }
+    }
+    public void ButtonHandler(String s){
+        String[] str = s.split(",");
+        AlertDialog.Builder alg = new AlertDialog.Builder(MainActivity.this);
 
-        @Override
-        protected void onPostExecute(String s) {
-            String[] str = s.split(",");
-            AlertDialog.Builder alg = new AlertDialog.Builder(MainActivity.this);
+        if(str[1].equals("0")){
+            alg.setTitle("알림")
+                    .setMessage(str[0] + "번 세탁기 알림을 받습니다.")
+                    .setPositiveButton("확인", null)
+                    .show();
 
-            if(str[1].equals("0")){
-                alg.setTitle("알림")
-                        .setMessage(str[0] + "번 세탁기 알림을 받습니다.")
-                        .setPositiveButton("확인", null)
-                        .show();
-
-                if(str[0].equals("1")){
-                    setButtonImage(0,true);
-                }else{
-                    setButtonImage(1,true);
-                }
-                editor.putString(str[0], "2");
-                editor.commit();
-            }else if(str[1].equals("1")){
-                alg.setTitle("알림")
-                        .setMessage(str[0] + "번 세탁기 알림이 취소되었습니다.")
-                        .setPositiveButton("확인", null)
-                        .show();
-                if(str[0].equals("1")){
-                    setButtonImage(0,false);
-                }else{
-                    setButtonImage(1,false);
-                }
-                editor.putString(str[0], "1");
-                editor.commit();
-            }else if(s.equals("error")){
-                Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.",Toast.LENGTH_LONG).show();
+            if(str[0].equals("1")){
+                setButtonImage(0,true);
             }else{
-                Toast.makeText(getApplicationContext(),"서버 에러", Toast.LENGTH_LONG).show();
+                setButtonImage(1,true);
             }
-
+            editor.putString(str[0], "2");
+            editor.commit();
+        }else if(str[1].equals("1")){
+            alg.setTitle("알림")
+                    .setMessage(str[0] + "번 세탁기 알림이 취소되었습니다.")
+                    .setPositiveButton("확인", null)
+                    .show();
+            if(str[0].equals("1")){
+                setButtonImage(0,false);
+            }else{
+                setButtonImage(1,false);
+            }
+            editor.putString(str[0], "1");
+            editor.commit();
+        }else if(s.equals("error")){
+            Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.",Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(getApplicationContext(),"서버 에러", Toast.LENGTH_LONG).show();
         }
+
+
+    }
+    @Override
+    public void onBackPressed() {
+        backPressCloseHandler.onBackPressed();
     }
 
     public void setImageButton(){
@@ -253,36 +254,6 @@ public class MainActivity extends AppCompatActivity {
             btns[btn].setBackgroundResource(R.drawable.button);
             btns[btn].setTextColor(rgb(0,0,0));
             btns[btn].setText("알림받기");
-        }
-    }
-
-    public void Start(){
-        start = new TimerTask() {
-            @Override
-            public void run() {
-                timeTask();
-            }
-
-            @Override
-            public boolean cancel() {
-                return super.cancel();
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(start, 0, 1000);
-    }
-    private void timeTask(){
-        getData(SEVER_ADDRESS+"/fcm/timer/status.php");
-        for(int i=0; i<2; i++){
-
-            if (second[i] != 0) {
-                int min = second[i] / 60;
-                int sec = second[i] % 60;
-                d_time[i] = String.format("%02d : %02d", min, sec);
-            } else {
-                d_time[i] = "00 : 00";
-            }
-            Update(i);
         }
     }
 
@@ -350,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getData(String url){
-        GetDataJSON g = new GetDataJSON();
+        g = new GetDataJSON();
         g.execute(url);
     }
 
@@ -410,61 +381,78 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class GetDataJSON extends AsyncTask<String, String, String>{
+    ProgressDialog progressDialog;
+
+    class GetDataJSON extends AsyncTask<String, Void, String>{
         @Override
         protected void onPreExecute() {
-            super.onPreExecute();
             if(FIRST){
-                mhandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.setMessage("Loading..");
-                        progressDialog.setCancelable(false);
-                        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                        progressDialog.show();
-                    }
-                });
+                progressDialog = new ProgressDialog(MainActivity.this);
+                progressDialog.setMessage("Loading...");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog.show();
             }
 
+        }
+
+        @Override
+        protected void onCancelled() {
+            FIRST = true;
+            super.onCancelled();
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            if(FIRST){
+                FIRST = false;
+                progressDialog.dismiss();
+            }
         }
 
         @Override
         protected String doInBackground(String... strings) {
-            OkHttpClient client = new OkHttpClient();
-            //request
-            Request request = new Request.Builder()
-                    .url(strings[0])
-                    .build();
-            try {
-                Response response = client.newCall(request).execute();
-                String jsonData = response.body().string();
-                response.body().close();
-                return jsonData;
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+            while(true){
+                OkHttpClient client = new OkHttpClient();
+                //request
+                Request request = new Request.Builder()
+                        .url(strings[0])
+                        .build();
+                try {
+                    Thread.sleep(1000);
+                    Response response = client.newCall(request).execute();
+                    String jsonData = response.body().string();
+                    response.body().close();
+
+                    showStatus(jsonData);
+                    for(int i=0; i<2; i++){
+
+                        if (second[i] != 0) {
+                            int min = second[i] / 60;
+                            int sec = second[i] % 60;
+                            d_time[i] = String.format("%02d : %02d", min, sec);
+                        } else {
+                            d_time[i] = "00 : 00";
+                        }
+                        Update(i);
+                        publishProgress();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
+
         }
 
         @Override
         protected void onPostExecute(String s) {
-            if(FIRST){
-                mhandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();
-                        FIRST=false;
-                    }
-                });
-
-            }
             if(s == null){
+                g.cancel(true);
                 Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요",Toast.LENGTH_LONG).show();
-                terminate =true;
                 return;
             }
-            showStatus(s);
+
         }
     }
 

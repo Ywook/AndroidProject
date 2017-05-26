@@ -76,6 +76,7 @@
 
                 <Button
                     android:id="@+id/button1"
+                    android:onClick="onClick"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
                     android:layout_width="match_parent"
@@ -134,6 +135,7 @@
 
                 <Button
                     android:id="@+id/button2"
+                    android:onClick="onClick"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:layout_gravity="center_horizontal"

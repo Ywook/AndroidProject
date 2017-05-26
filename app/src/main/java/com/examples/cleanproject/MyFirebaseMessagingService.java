@@ -55,7 +55,7 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
                 .setContentIntent(pendingIntent);
 
         if(b[0]) notificationB.setSound(defaultSoundUri);
-        if(b[1]) notificationB.setVibrate(new long[]{0,3000});
+        if(b[1]) notificationB.setVibrate(new long[]{0,2000});
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(0,notificationB.build());
