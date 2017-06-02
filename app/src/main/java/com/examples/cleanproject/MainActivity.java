@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void init(){
-        setting = getSharedPreferences("alarm",0);
+        setting = getSharedPreferences("Clean",0);
         editor = setting.edit();
 
         backPressCloseHandler = new BackPressCloseHandler(this);
@@ -288,6 +288,7 @@ public class MainActivity extends AppCompatActivity {
                     else cpBar[num].setSubTitle(d_time[num]);
 
                     if(setting.getString((num+1)+"", "0").equals("0")) {
+                        btns[num].setBackgroundResource(R.drawable.button);
                         btns[num].setTextColor(Color.rgb(0,0,0));
                         editor.putString((num+1)+"", "1");
                         editor.commit();
@@ -296,23 +297,16 @@ public class MainActivity extends AppCompatActivity {
                     btns[num].setEnabled(true);
 
                 }
-                if(status[2].equals("0")){
-                    cpBar[2].setTitle("사용가능");
-                    cpBar[2].setTitleColor(Color.rgb(24,211,180));
-                    cpBar[2].setProgress(0);
-                }else{
-                    cpBar[2].setTitle("사용 중");
-                    cpBar[2].setTitleColor(Color.rgb(0,137,223));
-                    cpBar[2].setProgress(100);
-                }
-                if(status[3].equals("0")){
-                    cpBar[3].setTitle("사용가능");
-                    cpBar[3].setTitleColor(Color.rgb(24,211,180));
-                    cpBar[3].setProgress(0);
-                }else{
-                    cpBar[3].setTitle("사용 중 ");
-                    cpBar[3].setTitleColor(Color.rgb(0,137,223));
-                    cpBar[3].setProgress(100);
+                for(int j = 2; j <=3; j++){
+                    if(status[j].equals("0")){
+                        cpBar[j].setTitle("사용가능");
+                        cpBar[j].setTitleColor(Color.rgb(24,211,180));
+                        cpBar[j].setProgress(0);
+                    }else{
+                        cpBar[j].setTitle("사용 중");
+                        cpBar[j].setTitleColor(Color.rgb(0,137,223));
+                        cpBar[j].setProgress(100);
+                    }
                 }
             }
         };
@@ -325,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         g.execute(url);
     }
 
-    public void showStatus(String jsonData){
+    public void setStatus(String jsonData){
         try{
             JSONObject jsonObject = new JSONObject(jsonData);
             JSONArray jsonArray = jsonObject.getJSONArray("result");
@@ -424,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
                     String jsonData = response.body().string();
                     response.body().close();
 
-                    showStatus(jsonData);
+                    setStatus(jsonData);
                     for(int i=0; i<2; i++){
 
                         if (second[i] != 0) {

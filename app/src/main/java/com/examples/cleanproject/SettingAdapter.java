@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -14,6 +15,8 @@ import android.widget.TextView;
  */
 
 public class SettingAdapter extends BaseAdapter {
+    int[] imgs = {R.drawable.notice, R.drawable.message, R.drawable.sound, R.drawable.vibrate, R.drawable.logout};
+
     String[] data;
     Context context;
 
@@ -51,7 +54,9 @@ public class SettingAdapter extends BaseAdapter {
 
         TextView tv = (TextView)view.findViewById(R.id.tv);
         Switch sw = (Switch)view.findViewById(R.id.sw);
+        ImageView imageView = (ImageView)view.findViewById(R.id.image);
 
+        imageView.setImageResource(imgs[i]);
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {

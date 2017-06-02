@@ -31,7 +31,7 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
         body = remoteMessage.getData().get("message");
         num = remoteMessage.getData().get("num");
 
-        setting = getSharedPreferences("alarm",0);
+        setting = getSharedPreferences("Clean",0);
         SettingEditor = setting.edit();
         SettingEditor.putString(num,"0");
         SettingEditor.commit();
