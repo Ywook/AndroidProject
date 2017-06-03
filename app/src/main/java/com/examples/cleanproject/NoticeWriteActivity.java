@@ -147,11 +147,11 @@ public class NoticeWriteActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             progressDialog.dismiss();
-            if (s.equalsIgnoreCase("ok")) {
+            if (s == null) {
+                Toast.makeText(getApplicationContext(), "데이터 연결 혹은 서버 에러.", Toast.LENGTH_LONG).show();
+            } else if (s.equalsIgnoreCase("ok")) {
                 Toast.makeText(getApplicationContext(), "수정완료", Toast.LENGTH_SHORT).show();
                 finish();
-            } else if (s == null) {
-                Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.", Toast.LENGTH_LONG).show();
             }else{
                 Toast.makeText(getApplicationContext(), "서버 에러.", Toast.LENGTH_LONG).show();
             }
@@ -200,11 +200,12 @@ public class NoticeWriteActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             progressDialog.dismiss();
-            if (s.equalsIgnoreCase("ok")) {
+            if (s== null) {
+                Toast.makeText(getApplicationContext(), "데이터 연결 혹은 서버 에러.", Toast.LENGTH_LONG).show();
+
+            } else if (s.equalsIgnoreCase("ok")) {
                 Toast.makeText(getApplicationContext(), "작성완료", Toast.LENGTH_SHORT).show();
                 finish();
-            } else if (s == null) {
-                Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.", Toast.LENGTH_LONG).show();
             } else{
                 Toast.makeText(getApplicationContext(), "서버 에러.", Toast.LENGTH_LONG).show();
             }

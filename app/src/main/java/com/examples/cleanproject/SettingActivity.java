@@ -13,6 +13,7 @@ public class SettingActivity extends AppCompatActivity {
     ListView listView;
     SettingAdapter adapter;
     String[] data = {"공지사항", "문의하기", "알림음", "진동" , "로그아웃"};
+    String id = "";
 
     static SharedPreferences setting;
     static SharedPreferences.Editor editor;
@@ -32,7 +33,7 @@ public class SettingActivity extends AppCompatActivity {
     public void init(){
         setting = getSharedPreferences("Clean",MODE_PRIVATE);
         editor = setting.edit();
-
+        id = setting.getString("ID","");
         b = new Boolean[]{setting.getBoolean("sound", true), setting.getBoolean("vibrate", true)};
 
         adapter = new SettingAdapter(data,SettingActivity.this, b);
@@ -48,6 +49,17 @@ public class SettingActivity extends AppCompatActivity {
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 }else if(i == QA){
+                    if(id.equals("admin")){
+                        Intent intent = new Intent(SettingActivity.this, ChatRoomActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
+                    }else{
+                        Intent intent = new Intent(SettingActivity.this, ChatRoom.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        intent.putExtra("room_name", id);
+                        intent.putExtra("user_name",id);
+                        startActivity(intent);
+                    }
 
                 }else if(i == OUT){
                     editor.putString("ID", "");

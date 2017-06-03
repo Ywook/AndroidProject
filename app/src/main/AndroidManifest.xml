@@ -12,7 +12,7 @@
         android:theme="@style/CustomActionBarTheme">
         <activity
             android:name=".IntroActivity"
-            android:theme="@style/NoTitleBar" >
+            android:theme="@style/NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,7 +22,9 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:theme="@style/NoTitleBar" />
+            android:theme="@style/NoTitleBar" >
+
+        </activity>
         <activity android:name=".SignUpActivity" />
         <activity android:name=".MainActivity" />
 
@@ -37,11 +39,15 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".SettingActivity"></activity>
-        <activity android:name=".NoticeActivity">
+        <activity android:name=".SettingActivity" />
+        <activity android:name=".NoticeActivity" >
+
         </activity>
         <activity android:name=".Notice2Activity" />
-        <activity android:name=".NoticeWriteActivity"></activity>
+        <activity android:name=".NoticeWriteActivity" />
+        <activity android:name=".ChatRoomActivity">
+        </activity>
+        <activity android:name=".ChatRoom"></activity>
     </application>
 
 </manifest>

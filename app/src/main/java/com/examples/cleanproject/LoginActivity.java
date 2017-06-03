@@ -25,7 +25,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final int REQUEST_CODE_SINGUP=1001;
 
-    private static final String Connect_ERROR="데이터 연결을 확인해주세요.";
+    private static final String Connect_ERROR="데이터 연결 혹은 서버 에러.";
     private static final String ID_ERROR = "없는 아이디입니다.";
     private static final String PASSWORD_ERROR = "비밀번호가 일치하지 않습니다.";
 
@@ -108,13 +108,16 @@ public class LoginActivity extends AppCompatActivity {
                     return "id";
                 }else if(res.equalsIgnoreCase("pw")){
                     return "pw";
+                }else{
+                    return res;
                 }
 
 
             } catch (IOException e) {
                 e.printStackTrace();
+                return "fail";
             }
-            return "fail";
+
         }
 
         @Override

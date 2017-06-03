@@ -194,7 +194,10 @@ public class MainActivity extends AppCompatActivity {
     public void ButtonHandler(String s){
         String[] str = s.split(",");
         AlertDialog.Builder alg = new AlertDialog.Builder(MainActivity.this);
-
+        if(s.equals("error")){
+            Toast.makeText(getApplicationContext(), "데이터 연결 혹은 서버에러.",Toast.LENGTH_LONG).show();
+            return;
+        }
         if(str[1].equals("0")){
             alg.setTitle("알림")
                     .setMessage(str[0] + "번 세탁기 알림을 받습니다.")
@@ -220,12 +223,7 @@ public class MainActivity extends AppCompatActivity {
             }
             editor.putString(str[0], "1");
             editor.commit();
-        }else if(s.equals("error")){
-            Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요.",Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(getApplicationContext(),"서버 에러", Toast.LENGTH_LONG).show();
         }
-
 
     }
     @Override
@@ -432,6 +430,7 @@ public class MainActivity extends AppCompatActivity {
                         publishProgress();
                     }
                 } catch (Exception e) {
+                    publishProgress();
                     e.printStackTrace();
                     return null;
                 }
@@ -443,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             if(s == null){
                 g.cancel(true);
-                Toast.makeText(getApplicationContext(), "데이터 연결을 확인해주세요",Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "데이터 연결 혹은 서버에러",Toast.LENGTH_LONG).show();
                 return;
             }
 
