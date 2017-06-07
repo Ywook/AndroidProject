@@ -406,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
 
             while(true){
                 OkHttpClient client = new OkHttpClient();
+
                 //request
                 Request request = new Request.Builder()
                         .url(strings[0])

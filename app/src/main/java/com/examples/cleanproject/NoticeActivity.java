@@ -181,7 +181,6 @@ public class NoticeActivity extends AppCompatActivity {
             br.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(this, "File not found", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }

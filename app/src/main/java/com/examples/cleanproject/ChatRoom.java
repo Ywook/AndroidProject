@@ -68,7 +68,7 @@ public class ChatRoom extends AppCompatActivity {
         root.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                //app이 데이터베이스오 ㅏ처음 connect될때 호출
+                //앱이 데이터베이스와처음 connect될때 호출
                 append_chat_conversation(dataSnapshot);
             }
 
