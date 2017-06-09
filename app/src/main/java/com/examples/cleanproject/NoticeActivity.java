@@ -95,12 +95,13 @@ public class NoticeActivity extends AppCompatActivity {
 
         adapter = new MyAdapter(data, this);
 
-        getData(SEVER_ADDRSS);
-        adapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onResume() {
+        data.clear();
+        getData(SEVER_ADDRSS);
+        adapter.notifyDataSetChanged();
         super.onResume();
     }
 

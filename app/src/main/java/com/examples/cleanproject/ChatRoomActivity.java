@@ -32,7 +32,10 @@ public class ChatRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
 
+        setTitle("채팅 목록");
+
         listView = (ListView)findViewById(R.id.listView);
+
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, list_of_rooms);
         listView.setAdapter(arrayAdapter);
