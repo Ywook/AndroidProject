@@ -14,6 +14,7 @@ public class SettingActivity extends AppCompatActivity {
     SettingAdapter adapter;
     String[] data = {"공지사항", "문의하기", "알림음", "진동" , "로그아웃"};
     String id = "";
+    MainActivity mActivity = (MainActivity) MainActivity.mainActivity;
 
     static SharedPreferences setting;
     static SharedPreferences.Editor editor;
@@ -70,6 +71,8 @@ public class SettingActivity extends AppCompatActivity {
                     Intent intent = new Intent(SettingActivity.this, LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
+                    finish();
+                    mActivity.finish();
                 }
             }
         });

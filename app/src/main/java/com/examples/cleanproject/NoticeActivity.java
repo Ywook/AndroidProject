@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -94,13 +95,12 @@ public class NoticeActivity extends AppCompatActivity {
 
         adapter = new MyAdapter(data, this);
 
+        getData(SEVER_ADDRSS);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onResume() {
-        data.clear();
-        getData(SEVER_ADDRSS);
-        adapter.notifyDataSetChanged();
         super.onResume();
     }
 
@@ -125,17 +125,26 @@ public class NoticeActivity extends AppCompatActivity {
         }
 
     }
+    ProgressDialog progressDialog2;
 
     public void getData(String url) {
         class getDataJson extends AsyncTask<String, Void, String> {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
+                progressDialog2 = new ProgressDialog(NoticeActivity.this);
+                progressDialog2.setMessage("Loading..");
+                progressDialog2.setCancelable(false);
+                progressDialog2.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                progressDialog2.show();
             }
 
             @Override
             protected String doInBackground(String... s) {
-                OkHttpClient client = new OkHttpClient();
+                OkHttpClient client = new OkHttpClient()
+                        .newBuilder()
+                        .connectTimeout(5, TimeUnit.SECONDS)
+                        .build();
                 //request
                 Request request = new Request.Builder()
                         .url(s[0])
@@ -154,6 +163,7 @@ public class NoticeActivity extends AppCompatActivity {
 
             @Override
             protected void onPostExecute(String result) {
+                progressDialog2.dismiss();
                 if (result == null) {
                     readFile();
                     Toast.makeText(getApplicationContext(), "데이터 연결 혹은 서버 에러.", Toast.LENGTH_SHORT).show();

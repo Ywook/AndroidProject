@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -19,7 +20,7 @@ import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
-    public static String SEVER_ADDRESS = "http://192.168.1.5:8080";
+    public static String SEVER_ADDRESS = "http://192.168.219.102:8080";
 
     EditText e_id, e_pw;
 
@@ -78,7 +79,6 @@ public class LoginActivity extends AppCompatActivity {
     }
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         backPressCloseHandler.onBackPressed();
     }
 
@@ -86,7 +86,10 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... strings) {
-            OkHttpClient client = new OkHttpClient();
+            OkHttpClient client = new OkHttpClient()
+                    .newBuilder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .build();
 
             RequestBody body = new FormBody.Builder()
                     .add("id", strings[0])

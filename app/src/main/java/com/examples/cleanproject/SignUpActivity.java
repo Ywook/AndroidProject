@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -63,7 +64,10 @@ public class SignUpActivity extends AppCompatActivity {
     private class AsyncSignUp extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(String... strings) {
-            OkHttpClient client = new OkHttpClient();
+            OkHttpClient client = new OkHttpClient()
+                    .newBuilder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .build();
 
             RequestBody body = new FormBody.Builder()
                     .add("id", strings[0])

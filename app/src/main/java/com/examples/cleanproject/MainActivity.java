@@ -1,5 +1,6 @@
 package com.examples.cleanproject;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -39,7 +41,7 @@ import static android.graphics.Color.rgb;
 public class MainActivity extends AppCompatActivity {
     public static SharedPreferences setting;
     public static SharedPreferences.Editor editor;
-
+    public static Activity mainActivity;
 
     String SEVER_ADDRESS = LoginActivity.SEVER_ADDRESS;
     BackPressCloseHandler backPressCloseHandler;
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mainActivity = MainActivity.this;
         setTitle("사용현황");
 
         init();
@@ -138,7 +140,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             String token = FirebaseInstanceId.getInstance().getToken();
-            OkHttpClient client = new OkHttpClient();
+            OkHttpClient client = new OkHttpClient()
+                    .newBuilder()
+                    .connectTimeout(5, TimeUnit.SECONDS)
+                    .build();
             RequestBody body = new FormBody.Builder()
                     .add("token", token)
                     .add("num", num)
@@ -381,6 +386,7 @@ public class MainActivity extends AppCompatActivity {
             if(FIRST){
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setMessage("Loading...");
+                progressDialog.setCancelable(false);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.show();
             }
@@ -405,7 +411,10 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... strings) {
 
             while(true){
-                OkHttpClient client = new OkHttpClient();
+                OkHttpClient client = new OkHttpClient()
+                        .newBuilder()
+                        .connectTimeout(5, TimeUnit.SECONDS)
+                        .build();
 
                 //request
                 Request request = new Request.Builder()
