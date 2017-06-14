@@ -20,7 +20,7 @@ import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private BackPressCloseHandler backPressCloseHandler;
-    public static String SEVER_ADDRESS = "http://192.168.219.102:8080";
+    public static String SEVER_ADDRESS = "http://jyw.dothome.co.kr";
 
     EditText e_id, e_pw;
 

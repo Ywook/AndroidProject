@@ -3,8 +3,10 @@ package com.examples.cleanproject;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -28,6 +30,13 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+        setTitle("회원가입");
+
+        ActionBar actionBar = getSupportActionBar();
+
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
+
 
         init();
     }
@@ -40,12 +49,14 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     public void onClick(View v) {
-
-
         if (etId.getText().length() < 4) {
             Toast.makeText(getApplicationContext(), "아이디가 너무 짧습니다.", Toast.LENGTH_SHORT).show();
             return;
-        } else if (etPW.getText().length() < 4) {
+        } else if(etId.getText().length() > 10){
+            Toast.makeText(getApplicationContext(), "아이디가 너무 길어요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        else if (etPW.getText().length() < 4) {
             Toast.makeText(getApplicationContext(), "비밀번호가 너무 짧습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -59,6 +70,16 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
         new AsyncSignUp().execute(id, pw);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+            return super.onOptionsItemSelected(item);
     }
 
     private class AsyncSignUp extends AsyncTask<String, String, String> {

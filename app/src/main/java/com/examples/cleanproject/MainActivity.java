@@ -386,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
             if(FIRST){
                 progressDialog = new ProgressDialog(MainActivity.this);
                 progressDialog.setMessage("Loading...");
-                progressDialog.setCancelable(false);
+                progressDialog.setCancelable(true);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.show();
             }
@@ -421,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
                         .url(strings[0])
                         .build();
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(857);
                     Response response = client.newCall(request).execute();
                     String jsonData = response.body().string();
                     response.body().close();

@@ -135,7 +135,6 @@ public class NoticeActivity extends AppCompatActivity {
                 super.onPreExecute();
                 progressDialog2 = new ProgressDialog(NoticeActivity.this);
                 progressDialog2.setMessage("Loading..");
-                progressDialog2.setCancelable(false);
                 progressDialog2.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog2.show();
             }

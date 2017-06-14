@@ -1,8 +1,5 @@
 package com.examples.cleanproject;
 
-import android.animation.Animator;
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -14,9 +11,7 @@ import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 import android.widget.ProgressBar;
 
 /**
@@ -67,7 +62,6 @@ public class CircularProgressBar extends ProgressBar {
     }
 
     public void init(AttributeSet attrs, int style){
-        //so that shadow shows up properly for lines and arcs
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
         TypedArray a = getContext().obtainStyledAttributes(attrs,
